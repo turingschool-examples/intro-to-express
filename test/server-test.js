@@ -1,6 +1,9 @@
 const assert = require('chai').assert
 const app = require('../server')
 const request = require('request')
+const environment = process.env.NODE_ENV || 'development';
+const configuration = require('../knexfile')[environment];
+const database = require('knex')(configuration);
 
 describe('Server', () => {
   before((done) => {
@@ -47,14 +50,22 @@ describe('Server', () => {
   })
 
   describe('GET /api/secrets/:id', () => {
-    beforeEach(() => {
-      app.locals.secrets = {
-        horse: 'Penelope'
-      }
+
+    beforeEach((done) => {
+      database.raw(
+        'INSERT INTO secrets (message, created_at) VALUES (?, ?)',
+        ["I open bananas from the wrong side", new Date]
+      ).then(() => done())
+      .catch(done);
+    })
+
+    afterEach((done) => {
+      database.raw('TRUNCATE secrets RESTART IDENTITY')
+      .then(() => done());
     })
 
     it('should return 404 if resource is not found', (done) => {
-      this.request.get('/api/secrets/laszlo', (error, response) => {
+      this.request.get('/api/secrets/10000', (error, response) => {
         if (error) { done(error) }
         assert.equal(response.statusCode, 404)
         done()
@@ -62,12 +73,17 @@ describe('Server', () => {
     })
 
     it('should return the id and message from the resource found', (done) => {
-      this.request.get('/api/secrets/horse', (error, response) => {
-        const id = Object.keys(app.locals.secrets)[0]
-        const message = app.locals.secrets[id]
+      this.request.get('/api/secrets/1', (error, response) => {
         if (error) { done(error) }
-        assert.include(response.body, id)
-        assert.include(response.body, message)
+
+        const id = 1
+        const message = "I open bananas from the wrong side"
+
+        let parsedSecret = JSON.parse(response.body)
+
+        assert.equal(parsedSecret.id, id)
+        assert.equal(parsedSecret.message, message)
+        assert.ok(parsedSecret.created_at)
         done()
       })
     })
