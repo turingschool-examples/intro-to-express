@@ -2,13 +2,9 @@ const environment = process.env.NODE_ENV || 'development';
 const configuration = require('./knexfile')[environment];
 const database = require('knex')(configuration);
 
-database.raw(
-  'INSERT INTO secrets (message, created_at) VALUES (?, ?)',
-  ["I open bananas from the wrong side", new Date]
-).then( () => {
-  database.raw('SELECT * FROM secrets')
+
+  database.raw('SELECT * FROM secrets where id = 10000')
   .then( (data) => {
-    console.log(data.rows)
+    console.log(data)
     process.exit();
   });
-});
