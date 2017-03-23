@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
+const cors = require('cors')
 const Secret = require('./lib/models/secret');
 const SecretsController = require('./lib/controllers/secrets-controller')
 
@@ -12,6 +13,15 @@ app.locals.secrets = {
 }
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
+
+var corsOptions = {
+  origin: '*',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+app.use(cors(corsOptions))
+
+app.options('*', cors())
 
 app.get('/', (request, response) => {
   response.end(app.locals.title)
