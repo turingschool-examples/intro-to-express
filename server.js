@@ -21,7 +21,7 @@ var corsOptions = {
 
 app.use(cors(corsOptions))
 
-app.options('*', cors())
+app.options('*', cors(corsOptions))
 
 app.get('/', (request, response) => {
   response.end(app.locals.title)
