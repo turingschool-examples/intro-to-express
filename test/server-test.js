@@ -1,9 +1,7 @@
 const assert = require('chai').assert
 const app = require('../server')
 const request = require('request')
-const environment = process.env.NODE_ENV || 'development';
-const configuration = require('../knexfile')[environment];
-const database = require('knex')(configuration);
+const Secret = require('../lib/models/secret');
 
 describe('Server', () => {
   before((done) => {
@@ -26,8 +24,24 @@ describe('Server', () => {
     assert(app)
   })
   describe('POST /api/secrets', () => {
-    beforeEach(() => {
-      app.locals.secrets = {}
+    beforeEach((done) => {
+      Secret.clearSecrets().then(() => done());
+    })
+
+    afterEach((done) => {
+      Secret.clearSecrets().then(() => done());
+    })
+
+    it('should receive and store data', (done) => {
+      const message = { message: 'I like pineapples' }
+      this.request.post('/api/secrets', { form: message }, (error, response) => {
+        if (error) { done(error) }
+        Secret.findSecretByMessage(message.message)
+        .then((data) => {
+          assert.equal(data.rowCount, 1)
+          done()
+        })
+      })
     })
 
     it('should not return a 404', (done) => {
@@ -37,31 +51,18 @@ describe('Server', () => {
         done()
       })
     })
-
-    it('should receive and store data', (done) => {
-      const message = { message: 'I like pineapples' }
-      this.request.post('/api/secrets', { form: message }, (error, response) => {
-        if (error) { done(error) }
-        const secretCount = Object.keys(app.locals.secrets).length
-        assert.equal(secretCount, 1)
-        done()
-      })
-    })
   })
 
   describe('GET /api/secrets/:id', () => {
 
     beforeEach((done) => {
-      database.raw(
-        'INSERT INTO secrets (message, created_at) VALUES (?, ?)',
-        ["I open bananas from the wrong side", new Date]
-      ).then(() => done())
+      Secret.createSecret("I open bananas from the wrong side")
+      .then(() => done())
       .catch(done);
     })
 
     afterEach((done) => {
-      database.raw('TRUNCATE secrets RESTART IDENTITY')
-      .then(() => done());
+      Secret.clearSecrets().then(() => done());
     })
 
     it('should return 404 if resource is not found', (done) => {
