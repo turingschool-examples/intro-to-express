@@ -1,11 +1,11 @@
-const assert = require('chai').assert
-const app = require('../server')
-const request = require('request')
+var assert = require('chai').assert
+var app = require('../server')
+var request = require('request')
 
-describe('Server', () => {
-  before((done) => {
+describe('Server', function() {
+  before(function(done) {
     this.port = 9876;
-    this.server = app.listen(this.port, (err, result) => {
+    this.server = app.listen(this.port, function(err, result) {
       if (err) { done(err) }
       done()
     })
@@ -15,56 +15,57 @@ describe('Server', () => {
     })
   })
 
-  after(() => {
+  after(function() {
     this.server.close()
   })
 
-  it('should exist', () => {
+  it('should exist', function() {
     assert(app)
   })
-  describe('POST /api/secrets', () => {
-    beforeEach(() => {
+
+  describe('POST /api/secrets', function() {
+    beforeEach(function() {
       app.locals.secrets = {}
     })
 
-    it('should not return a 404', (done) => {
-      this.request.post('/api/secrets', (error, response) => {
+    it('should not return a 404', function(done){
+      this.request.post('/api/secrets', function(error, response) {
         if (error) { done(error) }
         assert.notEqual(response.statusCode, 404)
         done()
       })
     })
 
-    it('should receive and store data', (done) => {
-      const message = { message: 'I like pineapples' }
-      this.request.post('/api/secrets', { form: message }, (error, response) => {
+    it('should receive and store data', function(done) {
+      var message = { message: 'I like pineapples' }
+      this.request.post('/api/secrets', { form: message }, function(error, response) {
         if (error) { done(error) }
-        const secretCount = Object.keys(app.locals.secrets).length
+        var secretCount = Object.keys(app.locals.secrets).length
         assert.equal(secretCount, 1)
         done()
       })
     })
   })
 
-  describe('GET /api/secrets/:id', () => {
-    beforeEach(() => {
+  describe('GET /api/secrets/:id', function() {
+    beforeEach(function() {
       app.locals.secrets = {
         horse: 'Penelope'
       }
     })
 
-    it('should return 404 if resource is not found', (done) => {
-      this.request.get('/api/secrets/laszlo', (error, response) => {
+    it('should return 404 if resource is not found', function(done) {
+      this.request.get('/api/secrets/laszlo', function(error, response) {
         if (error) { done(error) }
         assert.equal(response.statusCode, 404)
         done()
       })
     })
 
-    it('should return the id and message from the resource found', (done) => {
-      this.request.get('/api/secrets/horse', (error, response) => {
-        const id = Object.keys(app.locals.secrets)[0]
-        const message = app.locals.secrets[id]
+    it('should return the id and message from the resource found', function(done) {
+      this.request.get('/api/secrets/horse', function(error, response) {
+        var id = Object.keys(app.locals.secrets)[0]
+        var message = app.locals.secrets[id]
         if (error) { done(error) }
         assert.include(response.body, id)
         assert.include(response.body, message)
@@ -73,18 +74,18 @@ describe('Server', () => {
     })
   })
 
-  describe('GET /', () => {
-    it('should return a 200', (done) => {
-      this.request.get('/', (error, response) => {
+  describe('GET /', function() {
+    it('should return a 200', function(done) {
+      this.request.get('/', function(error, response) {
         if (error) { done(error) }
         assert.equal(response.statusCode, 200)
         done()
       })
     })
 
-    it('returns the app title', (done) => {
-      this.request.get('/', (error, response) => {
-        const title = app.locals.title
+    it('returns the app title', function(done) {
+      this.request.get('/', function(error, response) {
+        var title = app.locals.title
         if (error) { done(error) }
         assert.include(response.body, title)
         done()

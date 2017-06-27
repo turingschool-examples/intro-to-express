@@ -1,6 +1,6 @@
-const express = require('express')
-const app = express()
-const bodyParser = require('body-parser')
+var express = require('express')
+var app = express()
+var bodyParser = require('body-parser')
 
 app.set('port', process.env.PORT || 3000)
 app.locals.title = 'Secret Box'
@@ -8,16 +8,17 @@ app.locals.secrets = {
   wowowow: 'I am a banana',
   900: 'I am a pineapple'
 }
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 
-app.get('/', (request, response) => {
-  response.end(app.locals.title)
+app.get('/', function(request, response) {
+  response.send(app.locals.title)
 })
 
-app.post('/api/secrets', (request, response) => {
-  const id = Date.now()
-  const message = request.body.message
+app.post('/api/secrets', function(request, response) {
+  var id = Date.now()
+  var message = request.body.message
   if (!message) {
     return response.status(422).send({
       error: 'No message property provided'
@@ -29,9 +30,9 @@ app.post('/api/secrets', (request, response) => {
   })
 })
 
-app.get('/api/secrets/:id', (request, response) => {
-  const id = request.params.id
-  const message = app.locals.secrets[id]
+app.get('/api/secrets/:id', function(request, response) {
+  var id = request.params.id
+  var message = app.locals.secrets[id]
 
   if (!message) {
     return response.sendStatus(404)
@@ -42,7 +43,7 @@ app.get('/api/secrets/:id', (request, response) => {
 })
 
 if (!module.parent) {
-  app.listen(app.get('port'), () => {
+  app.listen(app.get('port'), function() {
     console.log(`${app.locals.title} is running on ${app.get('port')}.`)
   })
 }
